@@ -22,7 +22,14 @@ namespace MusicTracker.GUI
         public MainWindowController()
         {
             this.musicList = new MusicList();
+            this.musicList.Change += this.MusicList_Change;
+
             this.View = new MainWindow();
+            this.View.TrackAdded += this.AddTrack_Click;
+            this.View.TrackSelected += this.SelectTrack_Click;
+            this.View.TrackSaved += this.SaveTrack_Click;
+            this.View.GenresCleaned += this.CleanGenres_Click;
+            this.View.UpdateGenres(this.musicList.Genres.Genres);
         }
 
 
@@ -59,29 +66,44 @@ namespace MusicTracker.GUI
 
 
         // TODO: Add event handlers
-        public void AddNotDownloadedHandler(object sender, AddTrackEventArgs e)
+        private void MusicList_Change(object sender, EventArgs e)
         {
-            // TODO
+            if (sender is MusicGenres) { this.View.Invoke((MethodInvoker)delegate { this.View.UpdateGenres(this.musicList.Genres.Genres); }); }
+        }
+        private void AddTrack_Click(object sender, AddTrackEventArgs e)
+        {
+            MusicItem tmp = this.musicList.AddTrack(e.Title, e.Artist, e.Genre, e.Downloaded);
+            this.View.Invoke((MethodInvoker)delegate { this.View.AddTrack(tmp); });
         }
 
-        public void AddDownloadedHandler(object sender, AddTrackEventArgs e)
+        private void RemoveTrack_Click(object sender, TrackEventArgs e)
         {
-            // TODO
+            this.musicList.RemoveTrack(e.Track);
         }
 
-        public void SelectTrackHandler(object sender, SelectTrackEventArgs e)
+        private void SelectTrack_Click(object sender, SelectTrackEventArgs e)
         {
-            // TODO
+            this.View.Invoke((MethodInvoker)delegate { this.View.BeginEditTrack(e.Track); });
         }
 
-        public void SaveTrackHandler(object sender, SaveTrackEventArgs e)
+        private void SaveTrack_Click(object sender, SaveTrackEventArgs e)
         {
-            // TODO
+            e.OldTrack.Title = e.NewTitle;
+            e.OldTrack.Artist = e.NewArtist;
+            e.OldTrack.Genre = this.musicList.Genres.CreateGetGenre(e.NewGenre);
+            e.OldTrack.Downloaded = e.NewDownloaded;
         }
 
-        public void CleanUnusedGenresHandler(object sender, EventArgs e)
+        private void CleanGenres_Click(object sender, EventArgs e)
         {
-            // TODO
+            int[] genres = this.musicList.Genres.GenreIDs;
+            foreach (int genre in genres)
+            {
+                if (this.musicList.Tracks.Where((MusicItem i) => (i.Genre == genre)).Count() < 1)
+                {
+                    this.musicList.Genres.RemoveGenre(genre);
+                }
+            }
         }
     }
 }
