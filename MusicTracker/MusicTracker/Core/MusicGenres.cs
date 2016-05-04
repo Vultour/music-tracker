@@ -3,28 +3,44 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+
+using MusicTracker.Util;
 
 namespace MusicTracker.Core
 {
-    public class MusicGenres
+    public class MusicGenres : MusicObjectBase, IXESerializable
     {
         private List<MusicGenre> genres;
+        private int lastID = 0;
 
 
-        public MusicGenres() { this.genres = new List<MusicGenre>(); }
+        public List<string> Genres { get { return this.genres.Select((MusicGenre i) => i.Title).ToList(); } }
 
 
-        public Guid CreateGenre(string title, Guid guid)
+        public MusicGenres()
         {
-            Guid gg = this.GetGenre(title);
-            string gt = this.GetGenre(guid);
+            this.lastID = 0;
+            this.genres = new List<MusicGenre>();
+            this.CreateGenre("???", 0);
+        }
 
-            if (gg != null) { return gg; }
-            if (gt != null) { return this.GetGenre(gt); }
 
-            MusicGenre tmp = new MusicGenre(title, guid);
-            this.genres.Add(tmp);
-            return tmp.GUID;
+        public int CreateGenre(string title, int id)
+        {
+            int gID = this.GetGenre(title);
+            string gTitle = this.GetGenre(id);
+
+            if (gID != 0) { return gID; }
+            if (gTitle != null) { return this.GetGenre(gTitle); }
+
+            this.genres.Add(new MusicGenre(title, id));
+            return this.lastID;
+        }
+
+        public int CreateGenre(string title)
+        {
+            return this.CreateGenre(title, ++this.lastID);
         }
 
 
@@ -33,20 +49,36 @@ namespace MusicTracker.Core
             this.genres.RemoveAll((MusicGenre i) => (i.Title == title));
         }
 
-        public void RemoveGenre(Guid guid)
+        public void RemoveGenre(int id)
         {
-            this.genres.RemoveAll((MusicGenre i) => (i.GUID == guid));
+            this.genres.RemoveAll((MusicGenre i) => (i.ID == id));
         }
 
 
-        public Guid GetGenre(string title)
+        public int GetGenre(string title)
         {
-            return this.genres.Find((MusicGenre i) => (i.Title == title)).GUID;
+            return this.genres.Find((MusicGenre i) => (i.Title == title)).ID;
         }
 
-        public string GetGenre(Guid guid)
+        public string GetGenre(int id)
         {
-            return this.genres.Find((MusicGenre i) => (i.GUID == guid)).Title;
+            return this.genres.Find((MusicGenre i) => (i.ID == id)).Title;
+        }
+
+
+        public int CreateGetGenre(string title)
+        {
+            int gID = this.GetGenre(title);
+            if (gID != 0) { return gID; }
+            return this.CreateGenre(title);
+        }
+
+
+        public XElement SerializeXE()
+        {
+            XElement genres = new XElement("genres");
+            foreach (MusicGenre g in this.genres) { genres.Add(g.SerializeXE()); }
+            return genres;
         }
     }
 }
