@@ -57,11 +57,13 @@ namespace MusicTracker.Core
 
         public int GetGenre(string title)
         {
+            if (this.genres.Count < 1) { return 0; }
             return this.genres.Find((MusicGenre i) => (i.Title == title)).ID;
         }
 
         public string GetGenre(int id)
         {
+            if (this.genres.Count < 1) { return null; }
             return this.genres.Find((MusicGenre i) => (i.ID == id)).Title;
         }
 

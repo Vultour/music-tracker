@@ -76,31 +76,35 @@ namespace MusicTracker.Core
             try { doc = XDocument.Load(path); }
             catch (Exception) { throw new InvalidMusicXMLException(); }
 
-            foreach (var genre in doc.Root.Element("genres").StopIfMissing().Elements("genre"))
+            try
             {
-                m.Genres.CreateGenre(
-                    genre.Element("title").StopIfMissing().Get<string>(),
-                    genre.Element("id").StopIfMissing().Get<int>()
-                );
-            }
+                foreach (var genre in doc.Root.Element("genres").StopIfMissing().Elements("genre"))
+                {
+                    m.Genres.CreateGenre(
+                        genre.Element("title").StopIfMissing().Get<string>(),
+                        genre.Element("id").StopIfMissing().Get<int>()
+                    );
+                }
 
-            foreach (var dl in doc.Root.Element("downloaded").StopIfMissing().Elements("track"))
-            {
-                m.AddDownloaded(
-                    dl.Element("title").Get<string>(),
-                    dl.Element("artist").Get<string>(),
-                    m.Genres.GetGenre(dl.Element("genre").Get<int>())
-                );
-            }
+                foreach (var dl in doc.Root.Element("downloaded").StopIfMissing().Elements("track"))
+                {
+                    m.AddDownloaded(
+                        dl.Element("title").Get<string>(),
+                        dl.Element("artist").Get<string>(),
+                        m.Genres.GetGenre(dl.Element("genre").Get<int>())
+                    );
+                }
 
-            foreach (var ndl in doc.Root.Element("not-downloaded").StopIfMissing().Elements("track"))
-            {
-                m.AddNotDownloaded(
-                    ndl.Element("title").Get<string>(),
-                    ndl.Element("artist").Get<string>(),
-                    m.Genres.GetGenre(ndl.Element("genre").Get<int>())
-                );
+                foreach (var ndl in doc.Root.Element("not-downloaded").StopIfMissing().Elements("track"))
+                {
+                    m.AddNotDownloaded(
+                        ndl.Element("title").Get<string>(),
+                        ndl.Element("artist").Get<string>(),
+                        m.Genres.GetGenre(ndl.Element("genre").Get<int>())
+                    );
+                }
             }
+            catch (Exception) { throw new InvalidMusicXMLException(); }
 
             return m;
         }
