@@ -117,4 +117,15 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="lblWelcomeSubtext.Text" xml:space="preserve">
+    <value>Hey there!
+
+I'm happy you're using Music Tracker.
+
+To start, click on the 'Add Track' tab above!
+If you want to edit an existing track, simply click on it and you should be able to edit it here.
+
+You can find your save file in the %APPDATA% folder, in case you want to back it up or move it between machines.
+</value>
+  </data>
 </root>
