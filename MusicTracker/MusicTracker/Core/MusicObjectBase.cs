@@ -10,11 +10,10 @@ namespace MusicTracker.Core
 {
     public abstract class MusicObjectBase
     {
-        public delegate void MusicObjectChanged(MusicObjectBase sender);
-        public event MusicObjectChanged Change;
+        public event EventHandler Change;
 
-        protected void onChange(MusicObjectBase sender) { this.Change?.Invoke((sender == null) ? (this) : (sender)); }
-        protected void onChange() { this.onChange(null); }
-        protected virtual void childChangedHandler(MusicObjectBase sender) { this.onChange(sender); }
+        protected void onChange(object sender) { this.Change?.Invoke((sender == null) ? (this) : (sender), new EventArgs()); }
+        protected void onChange() { this.onChange(this); }
+        protected virtual void childChangedHandler(object sender, EventArgs e) { this.onChange(sender); }
     }
 }

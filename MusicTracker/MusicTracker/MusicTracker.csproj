@@ -51,7 +51,7 @@
     <Compile Include="Core\MusicItem.cs" />
     <Compile Include="Core\MusicList.cs" />
     <Compile Include="Core\MusicObjectBase.cs" />
-    <Compile Include="GUI\EventHelpers.cs" />
+    <Compile Include="Core\EventHelpers.cs" />
     <Compile Include="GUI\MainWindow.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -59,6 +59,7 @@
       <DependentUpon>MainWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="GUI\MainWindowController.cs" />
+    <Compile Include="GUI\MusicTrackerListViewItem.cs" />
     <Compile Include="MusicTracker.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -11,21 +11,75 @@ namespace MusicTracker.Core
 {
     public class MusicItem : MusicObjectBase, IXESerializable
     {
-        public string Title { get; set; }
+        public event EventHandler Deleting;
 
-        public string Artist { get; set; }
+        private string title;
+        private string artist;
+        private int genre;
+        private bool downloaded;
 
-        public int Genre { get; set; }
+
+        public MusicList Parent { get; private set; }
+        public string Title
+        {
+            get { return this.title; }
+            set {
+                if (this.title != value)
+                {
+                    this.title = value;
+                    this.onChange();
+                }
+            }
+        }
+
+        public string Artist
+        {
+            get { return this.artist; }
+            set {
+                if (this.artist != value)
+                {
+                    this.artist = value;
+                    this.onChange();
+                }
+            }
+        }
+
+        public int Genre
+        {
+            get { return this.genre; }
+            set {
+                if (this.genre != value)
+                {
+                    this.genre = value;
+                    this.onChange();
+                }
+            }
+        }
+
+        public bool Downloaded
+        {
+            get { return this.downloaded; }
+            set
+            {
+                if (this.downloaded != value)
+                {
+                    this.downloaded = value;
+                    this.onChange();
+                }
+            }
+        }
 
         public int ID { get; private set; }
 
 
-        public MusicItem(int id, string title, string artist, int genre)
+        public MusicItem(MusicList parent, int id, string title, string artist, int genre, bool downloaded)
         {
+            this.Parent = parent;
             this.ID = id;
             this.Title = title;
             this.Artist = artist;
             this.Genre = genre;
+            this.Downloaded = downloaded;
         }
 
 
@@ -35,8 +89,18 @@ namespace MusicTracker.Core
                 "track",
                 new XElement("title", this.Title),
                 new XElement("artist", this.Artist),
-                new XElement("genre", this.Genre)
+                new XElement("genre", this.Genre),
+                new XElement("downloaded", this.Downloaded)
             );
         }
+
+
+        public void Detach()
+        {
+            this.onDeleting();
+        }
+
+
+        private void onDeleting() { this.Deleting?.Invoke(this, new EventArgs()); }
     }
 }

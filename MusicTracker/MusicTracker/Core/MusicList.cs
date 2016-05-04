@@ -13,10 +13,11 @@ namespace MusicTracker.Core
     {
         private int lastID;
 
+        public List<MusicItem> Tracks { get; private set; }
 
-        public List<MusicItem> Downloaded { get; private set; }
+        public List<MusicItem> Downloaded { get { return this.Tracks.Where((MusicItem i) => i.Downloaded).ToList(); } }
 
-        public List<MusicItem> NotDownloaded { get; private set; }
+        public List<MusicItem> NotDownloaded { get { return this.Tracks.Where((MusicItem i) => !i.Downloaded).ToList(); } }
 
         public MusicGenres Genres { get; private set; }
 
@@ -24,39 +25,38 @@ namespace MusicTracker.Core
         public MusicList()
         {
             this.lastID = 0;
-            this.Downloaded = new List<MusicItem>();
-            this.NotDownloaded = new List<MusicItem>();
+            this.Tracks = new List<MusicItem>();
             this.Genres = new MusicGenres();
         }
 
 
-        public void AddDownloaded(string title, string artist, string genre)
+        public MusicItem AddTrack(string title, string artist, int genre, bool downloaded)
         {
-            int gID = this.Genres.CreateGetGenre(genre);
-            MusicItem tmp = new MusicItem(++this.lastID, title, artist, gID);
+            
+            MusicItem tmp = new MusicItem(this, ++this.lastID, title, artist, genre, downloaded);
             tmp.Change += this.childChangedHandler;
-            this.Downloaded.Add(tmp);
+            this.Tracks.Add(tmp);
+
+            return tmp;
         }
 
-        public void AddNotDownloaded(string title, string artist, string genre)
+        public MusicItem AddTrack(string title, string artist, string genre, bool downloaded)
         {
             int gID = this.Genres.CreateGetGenre(genre);
-            MusicItem tmp = new MusicItem(++this.lastID, title, artist, gID);
-            tmp.Change += this.childChangedHandler;
-            this.NotDownloaded.Add(tmp);
+            return this.AddTrack(title, artist, gID, downloaded);
         }
 
 
         public void RemoveTrack(int id)
         {
-            this.Downloaded.RemoveAll((MusicItem i) => (i.ID == id));
-            this.NotDownloaded.RemoveAll((MusicItem i) => (i.ID == id));
+            MusicItem tmp = this.Tracks.FindLast((MusicItem i) => (i.ID == id));
+            if (tmp != null) { this.RemoveTrack(tmp); }
         }
 
-        public void RemoveTrack(MusicItem item)
+        public void RemoveTrack(MusicItem track)
         {
-            this.Downloaded.Remove(item);
-            this.NotDownloaded.Remove(item);
+            track.Detach();
+            this.Tracks.Remove(track);
         }
 
 
@@ -80,27 +80,19 @@ namespace MusicTracker.Core
             {
                 foreach (var genre in doc.Root.Element("genres").StopIfMissing().Elements("genre"))
                 {
-                    m.Genres.CreateGenre(
+                    m.Genres.CreateGetGenre(
                         genre.Element("title").StopIfMissing().Get<string>(),
                         genre.Element("id").StopIfMissing().Get<int>()
                     );
                 }
 
-                foreach (var dl in doc.Root.Element("downloaded").StopIfMissing().Elements("track"))
+                foreach (var track in doc.Root.Element("tracks").StopIfMissing().Elements("track"))
                 {
-                    m.AddDownloaded(
-                        dl.Element("title").Get<string>(),
-                        dl.Element("artist").Get<string>(),
-                        m.Genres.GetGenre(dl.Element("genre").Get<int>())
-                    );
-                }
-
-                foreach (var ndl in doc.Root.Element("not-downloaded").StopIfMissing().Elements("track"))
-                {
-                    m.AddNotDownloaded(
-                        ndl.Element("title").Get<string>(),
-                        ndl.Element("artist").Get<string>(),
-                        m.Genres.GetGenre(ndl.Element("genre").Get<int>())
+                    m.AddTrack(
+                        track.Element("title").Get<string>(),
+                        track.Element("artist").Get<string>(),
+                        track.Element("genre").Get<int>(),
+                        track.Element("downloaded").Get<bool>()
                     );
                 }
             }
@@ -112,13 +104,10 @@ namespace MusicTracker.Core
 
         public XElement SerializeXE()
         {
-            XElement downloaded = new XElement("downloaded");
-            XElement notDownloaded = new XElement("not-downloaded");
+            XElement tracks = new XElement("tracks");
+            foreach (MusicItem track in this.Tracks) { tracks.Add(track.SerializeXE()); }
 
-            foreach (MusicItem i in this.Downloaded) { downloaded.Add(i.SerializeXE()); }
-            foreach (MusicItem i in this.Downloaded) { downloaded.Add(i.SerializeXE()); }
-
-            return new XElement("music", this.Genres.SerializeXE(), downloaded, notDownloaded);
+            return new XElement("music", this.Genres.SerializeXE(), tracks);
         }
     }
 }
